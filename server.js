@@ -10,19 +10,13 @@ app.use(bodyParser.json());
 
 // Register
 
-app.post('/addUser',function(req,res){
-   
-    if(req.body.firstName){
-      
-        if(req.body.lastName){
-            
-            if(req.body.email){
-                
-                if(isEmail(req.body.email)){
-
-                    
-                    if(req.body.password){
-                                user.create(req.body,function (err,user){
+app.post('/addUser',function(req,res) {
+    if(req.body.firstName) {
+        if(req.body.lastName) {
+            if(req.body.email) {
+                if(isEmail(req.body.email)) {
+                    if(req.body.password) {
+                                user.create(req.body,function (err,user) {
                                 if(err) {
                                     res.send("Some error occured during the creation" + err);
                                 } else {
@@ -104,18 +98,20 @@ app.post('/addUser',function(req,res){
 
 app.post('/login',function(req,res){
     let input = req.body;
-
+    // check if email is blank
     if (input.email == "") {
         res.status(400).json({message : 'Please enter email'})
-    } else if (input.password == "") {
+    } else if (input.password == "") { // check is password is blank
         res.status(400).json({message : 'Please enter password'})
     } else {
+        // check if user is there in the database
         user.findOne({'email':input.email,'password':input.password},function (err,user){
+            // check if there is no error and user object 
             if (!err && user!=null) {
                 // // send full user object
                  res.json({user:user,message : 'User loggedIn successfully'})
 
-                // send particular user data
+                // send particular user data ( if you want to send only specific data )
                 //res.json({firstName:user.firstName,lastName:user.lastName,message : 'User loggedIn successfully'})
             } else {
                 if (err) {
@@ -129,27 +125,31 @@ app.post('/login',function(req,res){
 });
 
 
-app.post('/forgot-password',function(req,res){
-    var nodemailer = require('nodemailer');
-    var smtpTransport = require('nodemailer-smtp-transport');
+app.post('/forgot-password',function(req,res) {
+    let nodemailer = require('nodemailer');
+    let smtpTransport = require('nodemailer-smtp-transport');
 
-
-    var from = 'tejas.dattani.sa@gmail.com';
-    var pwd = 'tejas.sa';
-    var to = req.body.email;
+    // from : sender email address
+    // pwd : sender email password
+    // to : Receiver email address
+    let from = 'tejas.dattani.sa@gmail.com';
+    let pwd = 'tejas.sa';
+    let to = req.body.email;
     
+    // check if email address is exists or not
     user.findOne({email:req.body.email},{'password':1}, function(err,user){
         
+        // if user or email address is not exists
         if (err && !user) {
             res.status(404).json({message: 'User not found'})
         } else {
-    // create reusable transporter object using the default SMTP transport
-            var transporter = nodemailer.createTransport(
+            // create reusable transporter object using the default SMTP transport
+            let transporter = nodemailer.createTransport(
                 smtpTransport('smtp://'+from+':'+pwd + '@smtp.gmail.com')
             );
             
             // setup e-mail data with unicode symbols
-            var mailOptions = {
+            let mailOptions = {
                 from:   'Tejas Dattani<'+from+'>', // sender address
                 to: to, // list of receivers
                 subject: 'Forgot Password', // Subject line    
