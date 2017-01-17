@@ -3,7 +3,7 @@ var app = express();
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var user = require('./Models/user')
-mongoose.connect('mongodb://localhost/EMS');
+mongoose.connect('mongodb://192.168.1.66/EMS');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -19,17 +19,9 @@ app.post('/addUser',function(req,res){
             if(req.body.email){
                 
                 if(isEmail(req.body.email)){
+
                     
-                    if(user.findOne({email:req.body.email},function(err,users){
-                        
-                        console.log(user.length)
-                        console.log(user.email)
-                        console.log(req.body.email)
-                        
-                         if(user.length){
-                            res.json({success:false , message : 'Email id is already registered. Please try with different email'})            
-                        }else{
-                            if(req.body.password){
+                    if(req.body.password){
                                 user.create(req.body,function (err,user){
                                 if(err) {
                                     res.send("Some error occured during the creation" + err);
@@ -42,8 +34,19 @@ app.post('/addUser',function(req,res){
                             }else{
                                 res.json({success:false , message : 'password is missing. Please enter password'})      
                             }
-                        }
-                    }));
+
+                    // if(user.findOne({email:req.body.email},function(err,users){
+                        
+                    //     console.log(user.length)
+                    //     console.log(user.email)
+                    //     console.log(req.body.email)
+                        
+                    //      if(user.length){
+                    //         res.json({success:false , message : 'Email id is already registered. Please try with different email'})            
+                    //     }else{
+                            
+                    //     }
+                    // }));
                 }else{
                     res.json({success:false , message : 'Please enter valid email id'})            
                 }
@@ -98,40 +101,73 @@ app.post('/addUser',function(req,res){
     });
 //});
 
-//app.post('/addUser', function(req,res){
-//    
-//  User.find({email: req.body.email},function(err,users){
-//  if(err) throw err;
-//  if(users.lenght){
-//       res.send("User already exist")
-//  }else{
-//        User.create(req.body,function (err,user){
-//        if(err) {
-//            res.send("Some error occured during the creation" + err);
-//        } else {
-//            res.status(200);
-//            res.send("New User added " + req.body.firstName  + req.body.lastName + req.body.email + req.body.password);
-//        }
-//    });
-//  }
-//  });
-//});
 
-//Login
+app.post('/login',function(req,res){
+    let input = req.body;
 
-app.post('/login', function(req,res){
+    if (input.email == "") {
+        res.status(400).json({message : 'Please enter email'})
+    } else if (input.password == "") {
+        res.status(400).json({message : 'Please enter password'})
+    } else {
+        user.findOne({'email':input.email,'password':input.password},function (err,user){
+            if (!err && user!=null) {
+                // // send full user object
+                 res.json({user:user,message : 'User loggedIn successfully'})
 
-  user.find({email : req.body.email , password : req.body.password}, function(err, users){
-
-    if(err) throw err;
-
-    if(users.length == 1){
-        res.send("User logged in")
+                // send particular user data
+                //res.json({firstName:user.firstName,lastName:user.lastName,message : 'User loggedIn successfully'})
+            } else {
+                if (err) {
+                    res.status(400).json({message: err.message})
+                } else {
+                    res.status(404).json({message: 'User not found'})
+                }
+            }
+        })
     }
-else{
-     res.send("Invalid data")
-}
 });
+
+
+app.post('/forgot-password',function(req,res){
+    var nodemailer = require('nodemailer');
+    var smtpTransport = require('nodemailer-smtp-transport');
+
+
+    var from = 'tejas.dattani.sa@gmail.com';
+    var pwd = 'tejas.sa';
+    var to = req.body.email;
+    
+    user.findOne({email:req.body.email},{'password':1}, function(err,user){
+        
+        if (err && !user) {
+            res.status(404).json({message: 'User not found'})
+        } else {
+    // create reusable transporter object using the default SMTP transport
+            var transporter = nodemailer.createTransport(
+                smtpTransport('smtp://'+from+':'+pwd + '@smtp.gmail.com')
+            );
+            
+            // setup e-mail data with unicode symbols
+            var mailOptions = {
+                from:   'Tejas Dattani<'+from+'>', // sender address
+                to: to, // list of receivers
+                subject: 'Forgot Password', // Subject line    
+                html:  'Your password is : ' + user.password
+            };
+
+            // send mail with defined transport object
+            transporter.sendMail(mailOptions, function(error, info){
+                if(error){
+                    return console.log(error);
+                }
+                console.log('Message sent: ' + info.response);
+            });
+            res.status(200).json({message: 'Mail sent successfully'})
+        }  
+    });
+    
+
 });
 
 app.listen(8081, function () {
