@@ -100,6 +100,35 @@ app.get('/users', function(req, res) {
   });
 });   
 
+// route to return all users (GET http://localhost:8080/api/users)
+app.get('/updatePassword', function(req, res) {
+  user.find({}, function(err, users) {
+    res.json(users);
+  });
+});   
+
+
+// route to return all users (GET http://localhost:8080/api/users)
+app.post('/Logout',function(req,res) {
+    
+  user.find({}, function(err, users) {
+    res.json(users);
+  });
+});   
+
+app.post('/resetPassword', express.bodyParser(), function (req, res) {
+    if (!req.session.reset) return res.end('reset token not set');
+    
+    var password = req.body.password;
+    var confirm = req.body.confirm;
+    if (password !== confirm) return res.end('passwords do not match');
+    
+    // update the user db here 
+    
+    forgot.expire(req.session.reset.id);
+    delete req.session.reset;
+    res.end('password reset');
+});
 
 
 app.post('/forgot-password',function(req,res) {
