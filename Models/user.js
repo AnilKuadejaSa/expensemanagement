@@ -7,9 +7,8 @@ var userSchema = new Schema({
     lastName: {type :String , require : true},
     email: {type :String , require : true },
     password: {type :String , require : true},
-    mobileNumber: Number
 });
 
 
-var User = mongoose.model('User', userSchema);
+var User = mongoose.model('users', userSchema);
 module.exports = User;

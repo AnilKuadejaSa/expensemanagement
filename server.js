@@ -11,92 +11,62 @@ app.use(bodyParser.json());
 // Register
 
 app.post('/addUser',function(req,res) {
-    if(req.body.firstName) {
-        if(req.body.lastName) {
-            if(req.body.email) {
-                if(isEmail(req.body.email)) {
-                    if(req.body.password) {
-                                user.create(req.body,function (err,user) {
-                                if(err) {
-                                    res.send("Some error occured during the creation" + err);
-                                } else {
-                                    res.status(200);
-                                    res.json({success:true,message : "New user added.",firstName : req.body.firstName,lastName : req.body.lastName})            
-//                                    res.send("New User added " + req.body.firstName  + req.body.lastName + req.body.email + req.body.password);
-                                }
-                                 });
-                            }else{
-                                res.json({success:false , message : 'password is missing. Please enter password'})      
-                            }
+var input = req.body;
 
-                    // if(user.findOne({email:req.body.email},function(err,users){
-                        
-                    //     console.log(user.length)
-                    //     console.log(user.email)
-                    //     console.log(req.body.email)
-                        
-                    //      if(user.length){
-                    //         res.json({success:false , message : 'Email id is already registered. Please try with different email'})            
-                    //     }else{
-                            
-                    //     }
-                    // }));
-                }else{
-                    res.json({success:false , message : 'Please enter valid email id'})            
+ if (input.email == "") {
+        res.status(400).json({message : 'Please enter email'})
+} else if (input.password == "") { // check is password is blank
+       res.status(400).json({message : 'Please enter password'})
+} else if (input.firstName == "") { // check is firstName is blank
+       res.status(400).json({message : 'Please enter firstName'})
+} else if (input.lastName == "") { // check is lastName is blank
+       res.status(400).json({message : 'Please enter lastName'})
+} else {
+           user.findOne({'email':input.email},function (err,user) {
+            // check if there is no error and user object 
+            if (!err && user!=null) {
+                res.status(400).json({message: 'User already exists'})
+            } else {
+                // save the user
+                console.log(input)
+
+                var userData = {
+                      email : input.email,
+                     password : input.password,
+                     firstName : input.firstName,
+                     lastName : input.lastName
                 }
+
+                // var userData = new user({
+                //             email : input.email,
+                //             password : input.password,
+                //             firstName : input.firstName,
+                //             lastName : input.lastName
+                // });
+
                 
-            }else{
-                res.json({success:false , message : 'email is missing. Please enter email'})        
+
+                user.create(userData,function (err,user) {
+
+                // user.save(userData),function (err,user){
+                //    user.create(user,function (error,user) {
+                       console.log('User create problem');
+                    if(err) {
+                        res.send("Error in SignUp" + err);
+                        throw err
+                    } else {
+                        res.status(200);
+                        res.json({success:true,message : "New user added.",firstName : input.firstName,lastName : input.lastName})            
+                    //                                    res.send("New User added " + req.body.firstName  + req.body.lastName + req.body.email + req.body.password);
+                    }
+                });
             }
-        }else{
-            res.json({success:false , message : 'last name is missing. Please enter last name'})    
-        }
-    }else{
-        res.json({success:false , message : 'first name is missing. Please enter first name'})
+        })
     }
-    
-//    let emailId = req.body.email 
-//    
-//    if(user.findOne({email:emailId},function(err,users){
-//      
-//        if(err){
-//            res.json({success:false , message : 'Something went wrong'})
-//        }else if(user){
-//            
-//            console.log(typeof(req.body.email))
-//            
-//            // check here if user is type of string then allow to go further.
-//            
-//            if(typeof(req.body.email) === String){
-//                
-//                if(user.length){
-//                    res.json({success:false , message : 'user already exists.'})
-//                }    
-//                
-//            }else{
-//                res.json({success:false , message : 'please enter proper email id.'})
-//            }
-//            
-//        }else{
-//            
-//         if(String(req.body.firstName)){
-//             
-//             if(req.body.length > 0 && req.body.lastName < 30){
-//                users.firstName = req.body.firstName 
-//             }else{
-//                  res.json({success:false , message : 'first name length is not proper.'})
-//             }
-//             
-//         }else{
-//             res.json({success:false , message : 'first name is identical to String only'})
-//         }
-//            
-//        } 
-    });
-//});
+});
 
 
-app.post('/login',function(req,res){
+app.post('/login',function(req,res) {
     let input = req.body;
     // check if email is blank
     if (input.email == "") {
@@ -105,12 +75,11 @@ app.post('/login',function(req,res){
         res.status(400).json({message : 'Please enter password'})
     } else {
         // check if user is there in the database
-        user.findOne({'email':input.email,'password':input.password},function (err,user){
+        user.findOne({'email':input.email,'password':input.password},function (err,user) {
             // check if there is no error and user object 
             if (!err && user!=null) {
-                // // send full user object
+                // send full user object
                  res.json({user:user,message : 'User loggedIn successfully'})
-
                 // send particular user data ( if you want to send only specific data )
                 //res.json({firstName:user.firstName,lastName:user.lastName,message : 'User loggedIn successfully'})
             } else {
