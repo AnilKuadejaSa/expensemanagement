@@ -3,7 +3,9 @@ var app = express();
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var user = require('./Models/user')
-mongoose.connect('mongodb://192.168.1.66/EMS');
+var jwt    = require('jsonwebtoken');
+var config = require('./Config')
+mongoose.connect(config.database);
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -11,7 +13,7 @@ app.use(bodyParser.json());
 // Register
 
 app.post('/addUser',function(req,res) {
-var input = req.body;
+let input = req.body;
 
  if (input.email == "") {
         res.status(400).json({message : 'Please enter email'})
@@ -22,41 +24,36 @@ var input = req.body;
 } else if (input.lastName == "") { // check is lastName is blank
        res.status(400).json({message : 'Please enter lastName'})
 } else {
-           user.findOne({'email':input.email},function (err,user) {
+    
+           user.findOne({'email':input.email},function (err,userObj) {
             // check if there is no error and user object 
-            if (!err && user!=null) {
+            if (!err && userObj!=null) {
                 res.status(400).json({message: 'User already exists'})
             } else {
                 // save the user
+                console.log(input.email)
                 console.log(input)
 
-                var userData = {
+                let userData = new user({
+                     firstName : input.firstName,
+                     lastName : input.lastName,
                       email : input.email,
                      password : input.password,
-                     firstName : input.firstName,
-                     lastName : input.lastName
-                }
+                     secretToken : jwt.sign(input.email,config.secret)
+                });
 
-                // var userData = new user({
-                //             email : input.email,
-                //             password : input.password,
-                //             firstName : input.firstName,
-                //             lastName : input.lastName
-                // });
-
-                
-
-                user.create(userData,function (err,user) {
+                userData.save(function (err,user) {
 
                 // user.save(userData),function (err,user){
                 //    user.create(user,function (error,user) {
-                       console.log('User create problem');
                     if(err) {
+                        res.status(400);
                         res.send("Error in SignUp" + err);
-                        throw err
+                        throw err;
                     } else {
                         res.status(200);
-                        res.json({success:true,message : "New user added.",firstName : input.firstName,lastName : input.lastName})            
+                        res.json({message:'new user added',user:userData});
+                        // res.json({success:true,message : "New user added.",firstName : input.firstName,lastName : input.lastName})            
                     //                                    res.send("New User added " + req.body.firstName  + req.body.lastName + req.body.email + req.body.password);
                     }
                 });
@@ -79,6 +76,7 @@ app.post('/login',function(req,res) {
             // check if there is no error and user object 
             if (!err && user!=null) {
                 // send full user object
+                //  let secretToken = jwt.sign(user.email,config.secret)
                  res.json({user:user,message : 'User loggedIn successfully'})
                 // send particular user data ( if you want to send only specific data )
                 //res.json({firstName:user.firstName,lastName:user.lastName,message : 'User loggedIn successfully'})
@@ -135,9 +133,21 @@ app.post('/forgot-password',function(req,res) {
             res.status(200).json({message: 'Mail sent successfully'})
         }  
     });
-    
+});
+
+app.get('\get-all-members',function(req,res){
+
+    user.find(function(err,req){
+
+        if(err){
+            res.status(400).json({message : err})
+        }else{
+            res.status(200).json({user})
+        }
+    });
 
 });
+
 
 app.listen(8081, function () {
   console.log('Example app listening on port 8081!');
