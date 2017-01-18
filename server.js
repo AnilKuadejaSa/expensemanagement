@@ -93,6 +93,14 @@ app.post('/login',function(req,res) {
     }
 });
 
+// route to return all users (GET http://localhost:8080/api/users)
+app.get('/users', function(req, res) {
+  user.find({}, function(err, users) {
+    res.json(users);
+  });
+});   
+
+
 
 app.post('/forgot-password',function(req,res) {
     let nodemailer = require('nodemailer');
