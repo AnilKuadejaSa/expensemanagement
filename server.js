@@ -98,15 +98,34 @@ app.get('/users', function(req, res) {
   });
 });   
 
-// route to return all users (GET http://localhost:8080/api/users)
-app.get('/updatePassword', function(req, res) {
-  user.find({}, function(err, users) {
-    res.json(users);
-  });
+app.post('/updatePassword', function(req, res) {
+
+    console.log(req)
+
+    let oldPassword = req.body.password
+    let emailId = req.body.email
+    
+    console.log(oldPassword)
+    console.log(emailId)
+
+//   user.find({email:emailId}, function(err, users) {
+
+//       if(users.length){
+
+//           console.log(users)
+
+//         if(users.password === oldPassword){
+//             res.status(200).json({message: 'Password matches'})
+//             console.log(req.body.newPassword)
+//         }
+
+//       }else{
+
+//           res.status(400).json({message: 'user not found'})
+//       }
+//   });
 });   
 
-
-// route to return all users (GET http://localhost:8080/api/users)
 app.post('/Logout',function(req,res) {
     
   user.find({}, function(err, users) {
@@ -114,7 +133,7 @@ app.post('/Logout',function(req,res) {
   });
 });   
 
-app.post('/resetPassword', express.bodyParser(), function (req, res) {
+app.post('/resetPassword', function (req, res) {
     if (!req.session.reset) return res.end('reset token not set');
     
     var password = req.body.password;
