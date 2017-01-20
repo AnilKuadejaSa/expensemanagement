@@ -2,12 +2,12 @@ var express = require("express");
 var app = express();
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
-var user = require('./Models/user')
+var user = require('./models/user')
 var jwt    = require('jsonwebtoken');
-var config = require('./config')
 
 //Environment configration
 var config = require('./config/env/development');
+
 if (process.env.NODE_ENV === 'development') {
     config = require('./config/env/development');
 } else if (process.env.NODE_ENV === 'production') {
@@ -36,22 +36,22 @@ let input = req.body;
 } else if (input.lastName == "") { // check is lastName is blank
        res.status(400).json({message : 'Please enter lastName'})
 } else {
-    
            user.findOne({'email':input.email},function (err,userObj) {
             // check if there is no error and user object 
             if (!err && userObj!=null) {
                 res.status(400).json({message: 'User already exists'})
             } else {
                 // save the user
-                console.log(input.email)
-                console.log(input)
-
+                // console.log(config.secret)
+               
                 let userData = new user({
                      firstName : input.firstName,
                      lastName : input.lastName,
-                      email : input.email,
+                     email : input.email,
                      password : input.password,
-                     secretToken : jwt.sign(input.email,config.secret)
+                     lent:input.lent,
+                     owes:input.owes,
+                     secretToken : jwt.sign(input,config.secret)
                 });
 
                 userData.save(function (err,user) {
