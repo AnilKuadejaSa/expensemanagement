@@ -4,6 +4,9 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var user = require('./models/user')
 var jwt    = require('jsonwebtoken');
+var crypto = require('crypto'),
+    algorithm = 'aes-256-ctr',
+    password = 'd6F3Efeq';
 
 //Environment configration
 var config = require('./config/env/development');
@@ -24,6 +27,20 @@ app.use(bodyParser.json());
 
 // Register
 
+function encrypt(text){
+  var cipher = crypto.createCipher(algorithm,password)
+  var crypted = cipher.update(text,'utf8','hex')
+  crypted += cipher.final('hex');
+  return crypted;
+}
+ 
+function decrypt(text){
+  var decipher = crypto.createDecipher(algorithm,password)
+  var dec = decipher.update(text,'hex','utf8')
+  dec += decipher.final('utf8');
+  return dec;
+}
+
 app.post('/addUser',function(req,res) {
 let input = req.body;
 
@@ -43,12 +60,14 @@ let input = req.body;
             } else {
                 // save the user
                 // console.log(config.secret)
+
+                var passwordEncrypt = encrypt(input.password)
                
                 let userData = new user({
                      firstName : input.firstName,
                      lastName : input.lastName,
                      email : input.email,
-                     password : input.password,
+                     password : passwordEncrypt,
                      lent:input.lent,
                      owes:input.owes,
                      secretToken : jwt.sign(input,config.secret)
