@@ -7,8 +7,9 @@ var userSchema = new Schema({
     lastName: {type :String , require : true},
     email: {type :String , require : true },
     password: {type :String , require : true},
+    phoneNumber : {type : Int,require : false},
+    lent : {type : Double,require : true},
+    owes : {type : Double,require : true}
 });
 
-
-var User = mongoose.model('users', userSchema);
-module.exports = User;
+module.exports = mongoose.model('user', userSchema);
