@@ -4,7 +4,19 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var user = require('./Models/user')
 var jwt    = require('jsonwebtoken');
-var config = require('./Config')
+var config = require('./config')
+
+//Environment configration
+var config = require('./config/env/development');
+if (process.env.NODE_ENV === 'development') {
+    config = require('./config/env/development');
+} else if (process.env.NODE_ENV === 'production') {
+    config = require('./config/env/production');
+}
+
+var port = config.PORT || 9090;
+// process.env.port
+
 mongoose.connect(config.database);
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -205,8 +217,8 @@ app.get('\get-all-members',function(req,res){
 });
 
 
-app.listen(8081, function () {
-  console.log('Example app listening on port 8081!');
+app.listen(port, function () {
+  console.log('Example app listening on port!'+port);
 });
 
 function isEmail(email) { 
