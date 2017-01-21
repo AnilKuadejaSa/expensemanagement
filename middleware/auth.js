@@ -1,23 +1,25 @@
 var express = require("express");
-var apiRoutes = Router(); 
-var config = require('./config')
+const jwt = require('jsonwebtoken');  
+var apiRoutes = express.Router(); 
 
 //Environment configration
-var config = require('./config/env/development');
+var config = require('../config/env/development');
 if (process.env.NODE_ENV === 'development') {
-    config = require('./config/env/development');
+    config = require('../config/env/development');
 } else if (process.env.NODE_ENV === 'production') {
-    config = require('./config/env/production');
+    config = require('../config/env/production');
 }
 
-
-// route to authenticate a user (POST http://localhost:8080/api/authenticate)
-
 // route middleware to verify a token
-apiRoutes.use(function(req, res, next) {
+exports.checkAuth = function(req, res, next) {
 
   // check header or url parameters or post parameters for token
-  var token = req.body.token || req.query.token || req.headers['x-access-token'];
+  // var token = req.body.x-auth-token || req.query.x-auth-token || req.headers['x-auth-token'];
+
+ var token = req.headers['x-auth-token'];
+
+//  console.log(token)
+//  console.log(config.secret)
 
   // decode token
   if (token) {
@@ -39,8 +41,8 @@ apiRoutes.use(function(req, res, next) {
     // return an error
     return res.status(403).send({ 
         success: false, 
-        message: 'No token provided.' 
+        message: 'Unauthorized Access.' 
     });
     
   }
-});
+};
